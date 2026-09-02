@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ST2AWD - TP01 - Exercice 6</title>
+
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; }
+
+    /* L overlay doit passer au-dessus du canvas AR.
+       pointer-events sur le conteneur reste none pour ne pas bloquer
+       la scene, il est reactive uniquement sur le panneau. */
+    #overlay {
+      position: fixed; inset: 0; z-index: 10;
+      pointer-events: none;
+      display: flex; flex-direction: column; justify-content: flex-end;
+    }
+
+    #panneau {
+      pointer-events: auto;
+      background: rgba(20, 22, 26, 0.88);
+      color: #fff;
+      padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+      opacity: 0; transform: translateY(100%);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    #panneau.visible { opacity: 1; transform: translateY(0); }
+
+    .ligne { display: flex; align-items: center; gap: 12px; }
+    .ligne + .ligne { margin-top: 14px; }
+
+    label { font-size: 13px; min-width: 96px; }
+    #valTaille { font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
+
+    input[type=range] {
+      flex: 1; height: 32px; accent-color: #4da3ff;
+      touch-action: none;   /* evite que le drag scrolle la page sur mobile */
+    }
+
+    .couleurs { display: flex; gap: 10px; flex: 1; }
+    .couleurs button {
+      flex: 1; height: 40px; border: 2px solid transparent;
+      border-radius: 6px; cursor: pointer;
+    }
+    .couleurs button.actif { border-color: #fff; }
+
+    #attente {
+      pointer-events: none;
+      position: absolute; top: 50%; left: 0; right: 0;
+      text-align: center; color: #fff; font-size: 14px;
+      text-shadow: 0 1px 4px #000;
+    }
+    #attente.cache { display: none; }
+  </style>
+</head>
+<body>
+
+  <div id="overlay">
+    <div id="attente">Pointez la camera vers le marqueur Hiro</div>
+
+    <div id="panneau">
+      <div class="ligne">
+        <label for="taille">Taille</label>
+        <input type="range" id="taille" min="0.1" max="3.0" step="0.05" value="1">
+        <span id="valTaille">1.00</span>
+      </div>
+      <div class="ligne">
+        <label>Couleur</label>
+        <div class="couleurs" id="palette">
+          <button data-couleur="#E53935" style="background:#E53935"></button>
+          <button data-couleur="#43A047" style="background:#43A047"></button>
+          <button data-couleur="#1E88E5" style="background:#1E88E5"></button>
+          <button data-couleur="#FDD835" style="background:#FDD835"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true; precision: medium;"
+      arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;">
+
+    <a-marker id="marqueur" preset="hiro">
+      <a-box id="boite"
+             position="0 0.5 0"
+             width="1" height="1" depth="1"
+             material="color: #1E88E5; opacity: 0.75; transparent: true">
+      </a-box>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    var marqueur = document.getElementById('marqueur');
+    var boite    = document.getElementById('boite');
+    var panneau  = document.getElementById('panneau');
+    var attente  = document.getElementById('attente');
+    var slider   = document.getElementById('taille');
+    var valeur   = document.getElementById('valTaille');
+    var palette  = document.getElementById('palette');
+
+    // --- Taille ---
+    function appliquerTaille(t) {
+      boite.setAttribute('scale', t + ' ' + t + ' ' + t);
+      // la position est le centre du cube : sans ce recalcul,
+      // la boite s enfonce sous le marqueur quand elle grandit
+      boite.setAttribute('position', '0 ' + (t / 2) + ' 0');
+      valeur.textContent = t.toFixed(2);
+    }
+    slider.addEventListener('input', function () {
+      appliquerTaille(parseFloat(this.value));
+    });
+
+    // --- Couleur ---
+    palette.addEventListener('click', function (e) {
+      var bouton = e.target.closest('button');
+      if (!bouton) return;
+      // mise a jour partielle : opacity et transparent sont conserves
+      boite.setAttribute('material', 'color', bouton.dataset.couleur);
+      Array.prototype.forEach.call(palette.children, function (b) {
+        b.classList.toggle('actif', b === bouton);
+      });
+    });
+
+    // --- Affichage de l UI selon la detection ---
+    // markerLost se declenche des qu une frame rate la detection.
+    // Sans ce delai, le panneau clignote en permanence.
+    var timerMasquage = null;
+
+    marqueur.addEventListener('markerFound', function () {
+      clearTimeout(timerMasquage);
+      panneau.classList.add('visible');
+      attente.classList.add('cache');
+    });
+
+    marqueur.addEventListener('markerLost', function () {
+      clearTimeout(timerMasquage);
+      timerMasquage = setTimeout(function () {
+        panneau.classList.remove('visible');
+        attente.classList.remove('cache');
+      }, 400);
+    });
+
+    appliquerTaille(1);
+    palette.children[2].classList.add('actif');
+  </script>
+
+</body>
+</html>
