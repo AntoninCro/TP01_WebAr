@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ST2AWD - TP01 - Exercice 1</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+</head>
+<body>
+
+  <a-scene>
+
+    <!-- Plan de base : par defaut un a-plane est vertical, on le couche avec rotation X = -90 -->
+    <a-plane position="0 0 0"
+             rotation="-90 0 0"
+             width="20"
+             height="20"
+             color="#4E8C57"></a-plane>
+
+    <!-- Trois boites de couleurs et positions differentes, en levitation a y = 2 -->
+    <a-box position="-4 2 0" width="1.5" height="1.5" depth="1.5" color="#D64541"></a-box>
+    <a-box position="0 2 -3"  width="1.5" height="1.5" depth="1.5" color="#2E86C1"></a-box>
+    <a-box position="4 2 2"   width="1.5" height="1.5" depth="1.5" color="#F1C40F"></a-box>
+
+    <!-- Eclairage -->
+    <a-light type="ambient" color="#BBB"></a-light>
+    <a-light type="directional" position="5 10 5" intensity="0.8"></a-light>
+
+    <a-sky color="#E8F1F5"></a-sky>
+
+    <!-- Camera : y = 10 (hauteur), z = 15 (distance), inclinee vers le centre du plan.
+         atan(10 / 15) = 33.7 degres, d'ou rotation X = -33.7
+         look-controls et wasd-controls desactives pour que la rotation reste fixe -->
+    <a-entity camera
+              position="0 10 15"
+              rotation="-33.7 0 0"
+              look-controls="enabled: false"
+              wasd-controls="enabled: false"></a-entity>
+
+  </a-scene>
+
+</body>
+</html>
