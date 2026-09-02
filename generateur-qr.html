@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generateur QR + marqueur Hiro</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 780px; margin: 32px auto; padding: 0 16px; }
+    label { display: block; margin: 16px 0 4px; font-weight: 600; }
+    input[type=text] { width: 100%; padding: 8px; font-size: 14px; box-sizing: border-box; }
+    input[type=range] { width: 100%; }
+    button { margin-top: 16px; padding: 10px 18px; font-size: 15px; cursor: pointer; }
+    #sortie { margin-top: 24px; }
+    #sortie canvas { max-width: 100%; border: 1px solid #ccc; }
+    #qrcache { display: none; }
+    .erreur { color: #c00; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<h1>QR code avec marqueur Hiro au centre</h1>
+
+<label for="url">URL GitHub Pages du projet</label>
+<input type="text" id="url" value="https://TON_PSEUDO.github.io/TON_REPO/exercice5.html">
+
+<label for="taille">Taille du marqueur : <span id="valTaille">32</span> % de la largeur du QR</label>
+<input type="range" id="taille" min="20" max="40" value="32">
+
+<button id="generer">Generer</button>
+<button id="telecharger" disabled>Telecharger le PNG</button>
+
+<div id="qrcache"></div>
+<div id="sortie"></div>
+
+<script>
+var TAILLE = 1200;          // resolution du PNG final
+var hiro = new Image();
+var hiroPrete = false;
+
+hiro.onload  = function () { hiroPrete = true; };
+hiro.onerror = function () {
+  document.getElementById('sortie').innerHTML =
+    '<p class="erreur">HIRO.jpg introuvable. Telecharge-le depuis ' +
+    'https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg ' +
+    'et place-le dans le meme dossier que cette page.</p>';
+};
+hiro.src = 'HIRO.jpg';      // meme origine : evite de salir le canvas
+
+document.getElementById('taille').addEventListener('input', function () {
+  document.getElementById('valTaille').textContent = this.value;
+});
+
+document.getElementById('generer').addEventListener('click', function () {
+  var url = document.getElementById('url').value.trim();
+  var ratio = parseInt(document.getElementById('taille').value, 10) / 100;
+  var cache = document.getElementById('qrcache');
+  cache.innerHTML = '';
+
+  if (!hiroPrete) {
+    document.getElementById('sortie').innerHTML =
+      '<p class="erreur">HIRO.jpg pas encore charge.</p>';
+    return;
+  }
+
+  // correctLevel H : jusqu a 30% du code peut etre masque et reste lisible.
+  // C est ce qui autorise le marqueur au centre.
+  new QRCode(cache, {
+    text: url,
+    width: TAILLE,
+    height: TAILLE,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  setTimeout(function () { composer(cache, ratio); }, 120);
+});
+
+function composer(cache, ratio) {
+  var source = cache.querySelector('canvas') || cache.querySelector('img');
+  if (!source) { return; }
+
+  var c = document.createElement('canvas');
+  // marge blanche exterieure : zone de silence exigee par les lecteurs de QR
+  var marge = Math.round(TAILLE * 0.08);
+  c.width = c.height = TAILLE + marge * 2;
+  var ctx = c.getContext('2d');
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(source, marge, marge, TAILLE, TAILLE);
+
+  // Carre blanc au centre : il isole le marqueur des modules du QR.
+  // Sans lui, la bordure noire de Hiro touche des modules noirs
+  // et ARToolKit ne peut plus fermer le contour du carre.
+  var cote = Math.round(TAILLE * ratio);
+  var blanc = Math.round(cote * 1.18);
+  var cx = c.width / 2;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(cx - blanc / 2, cx - blanc / 2, blanc, blanc);
+
+  ctx.drawImage(hiro, cx - cote / 2, cx - cote / 2, cote, cote);
+
+  var sortie = document.getElementById('sortie');
+  sortie.innerHTML = '<p>Zone masquee : ' +
+    Math.round(ratio * ratio * 100) + ' % de la surface du QR (limite ~30 %).</p>';
+  sortie.appendChild(c);
+
+  var bouton = document.getElementById('telecharger');
+  bouton.disabled = false;
+  bouton.onclick = function () {
+    var a = document.createElement('a');
+    a.download = 'qr-hiro.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+  };
+}
+</script>
+
+</body>
+</html>
