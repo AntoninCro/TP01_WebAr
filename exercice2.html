@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ST2AWD - TP01 - Exercice 2</title>
+
+  <!-- A-Frame 1.6.0 : version exigee par AR.js 3.4.7 -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <!-- AR.js, build A-Frame (marker based) -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+  <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true; precision: medium;"
+      arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;">
+
+    <!-- Marqueur Hiro : tout ce qui est a l'interieur n'apparait que s'il est detecte -->
+    <a-marker preset="hiro">
+
+
+      <a-box
+          position="0 0.5 0"
+          width="1" height="1" depth="1"
+          material="color: #2E86C1; opacity: 0.6; transparent: true"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear">
+      </a-box>
+
+    </a-marker>
+
+    <!-- Camera AR : ne jamais lui donner de position, AR.js la pilote -->
+    <a-entity camera></a-entity>
+
+  </a-scene>
+
+</body>
+</html>

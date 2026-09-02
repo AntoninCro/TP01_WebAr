@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ST2AWD - TP01 - Exercice 3</title>
+
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; }
+  </style>
+
+  <script>
+    // Composant maison : gere la reaction au clic / tap sur la boite
+    AFRAME.registerComponent('reaction-tap', {
+      init: function () {
+        var el = this.el;
+        var couleurs = ['#2E86C1', '#D64541', '#F1C40F', '#27AE60'];
+        var index = 0;
+        var rapide = false;
+
+        el.addEventListener('click', function () {
+          // 1. couleur suivante dans la liste
+          index = (index + 1) % couleurs.length;
+          el.setAttribute('material', 'color', couleurs[index]);
+
+          // 2. bascule entre rotation lente et rotation rapide
+          rapide = !rapide;
+          el.setAttribute('animation__rot', 'dur', rapide ? 1000 : 4000);
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true; precision: medium;"
+      arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;">
+
+    <a-marker preset="hiro">
+
+      <a-box
+          class="cliquable"
+          reaction-tap
+          position="0 0.5 0"
+          width="1" height="1" depth="1"
+          material="color: #2E86C1; opacity: 0.6; transparent: true"
+          animation__rot="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear"
+          animation__scale="property: scale; from: 1 1 1; to: 1.4 1.4 1.4;
+                            dur: 250; dir: alternate; loop: 2;
+                            easing: easeOutQuad; startEvents: click">
+      </a-box>
+
+    </a-marker>
+
+    <!-- Curseur attache a la camera.
+         rayOrigin: mouse fait partir le rayon du pointeur (souris ou doigt)
+         au lieu du centre de l'ecran, indispensable en AR ou la camera bouge. -->
+    <a-entity camera>
+      <a-entity cursor="rayOrigin: mouse; fuse: false"
+                raycaster="objects: .cliquable"></a-entity>
+    </a-entity>
+
+  </a-scene>
+
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ST2AWD - TP01 - Exercice 4</title>
+
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; }
+  </style>
+
+  <script>
+    AFRAME.registerComponent('reaction-tap', {
+      init: function () {
+        var el = this.el;
+        var couleurs = ['#2E86C1', '#D64541', '#F1C40F', '#27AE60'];
+        var index = 0;
+        var rapide = false;
+
+        el.addEventListener('click', function () {
+          index = (index + 1) % couleurs.length;
+          el.setAttribute('material', 'color', couleurs[index]);
+          rapide = !rapide;
+          el.setAttribute('animation__rot', 'dur', rapide ? 1000 : 4000);
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true; precision: medium;"
+      arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;">
+
+    <!-- Marqueur Hiro : la boite interactive de l'exercice 3 -->
+    <a-marker id="hiro" preset="hiro">
+      <a-box
+          class="cliquable"
+          reaction-tap
+          position="0 0.5 0"
+          width="1" height="1" depth="1"
+          material="color: #2E86C1; opacity: 0.6; transparent: true"
+          animation__rot="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear"
+          animation__scale="property: scale; from: 1 1 1; to: 1.4 1.4 1.4;
+                            dur: 250; dir: alternate; loop: 2;
+                            easing: easeOutQuad; startEvents: click">
+      </a-box>
+    </a-marker>
+
+    <!-- Marqueur personnalise  -->
+    <a-marker id="perso" type="pattern" url="pattern-Anto.patt">
+
+      
+      <a-torus-knot
+          position="0 0.6 0"
+          rotation="-90 0 0"
+          radius="0.35"
+          radius-tubular="0.06"
+          p="2" q="3"
+          segments-radial="12"
+          segments-tubular="80"
+          material="color: #8E44AD; metalness: 0.4; roughness: 0.3"
+          animation="property: rotation; from: -90 0 0; to: -90 0 360;
+                     loop: true; dur: 6000; easing: linear">
+      </a-torus-knot>
+
+      <!-- Petit socle -->
+      <a-cylinder
+          position="0 0.02 0"
+          radius="0.55" height="0.04"
+          material="color: #34495E; opacity: 0.7; transparent: true">
+      </a-cylinder>
+
+    </a-marker>
+
+    <a-entity camera>
+      <a-entity cursor="rayOrigin: mouse; fuse: false"
+                raycaster="objects: .cliquable"></a-entity>
+    </a-entity>
+
+  </a-scene>
+
+</body>
+</html>
